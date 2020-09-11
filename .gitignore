@@ -1,0 +1,5 @@
+.openode
+.openodeignore
+js/
+node_modules/
+.env

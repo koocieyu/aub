@@ -1,8 +1,6 @@
 import { Client, Message, MessageEmbed } from "discord.js"
 import moment from "moment"
 import { commands, MDB, db_cooldowns } from "../main"
-import mongoose from "mongoose"
-import { stringify } from "querystring"
 
 export function run_event(Bot: Client, message: Message) {
   const bot_prefix = process.env.botprefix
@@ -19,26 +17,32 @@ export function run_event(Bot: Client, message: Message) {
   commands.forEach(command => {
     if (command_name === command.name) {
       if (command.cooldown) {
-        const cooldown_in_db = db_cooldowns.exists({name: command_name, user_id: message.author.id });
-        if (cooldown_in_db) {
-          db_cooldowns.findOne({name: command_name, user_id: message.author.id }, (error, found_document) => {
-            const seconds_since_last_exec = moment().diff(found_document.get("last_executed"), "seconds")
-            if (seconds_since_last_exec < command.cooldown) {
-              return message.channel.send({
-                embed: new MessageEmbed()
-                  .setFooter(`This command is on cooldown and will be available in ${command.cooldown - seconds_since_last_exec} seconds`)
+        db_cooldowns.exists({name: command_name, user_id: message.author.id })
+          .then(exists => {
+            if (exists) {
+              db_cooldowns.findOne({name: command_name, user_id: message.author.id }, (error, found_document) => {
+                if (error) return console.log(`An error occured while finding cooldown for user ${message.author.id}: ${error}`);
+                const seconds_since_last_exec = moment().diff(found_document.get("last_executed"), "seconds")
+                if (seconds_since_last_exec < command.cooldown) {
+                  return message.channel.send({
+                    embed: new MessageEmbed()
+                      .setFooter(`This command is on cooldown and will be available in ${command.cooldown - seconds_since_last_exec} seconds`)
+                  })
+                }
               })
             }
           })
-        }
- 
+          .catch(resaon => {
+            return console.log(`There was an error while checking if cooldown of an user exists: ${resaon}`)
+          })
       }
 
       // check other conditions
-      const Command = require(`../commands/${command.file_name}`)
-      Command.run(Bot, command_arguments, message)
+      
 
       // If everything passed, run the command
+      const Command = require(`../commands/${command.file_name}`)
+      Command.run(Bot, command_arguments, message)
       
     }
   })

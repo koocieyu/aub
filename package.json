@@ -5,17 +5,21 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node js/main.js"
+    "start": "node js/main.js",
+    "devstart": "tsc && node js/main.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "discord.js": "^12.3.1",
+    "dotenv": "^8.2.0",
     "express": "^4.17.1",
-    "mongodb": "^3.6.2"
+    "moment": "^2.27.0",
+    "mongoose": "^5.10.5"
   },
   "devDependencies": {
+    "@types/mongoose": "^5.7.36",
     "@types/node": "^14.10.1",
     "typescript": "^4.0.2"
   }

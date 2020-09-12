@@ -15,11 +15,11 @@ export default function (command_name: string, user_id: string) {
             user_id: user_id
           },
           {
-            last_executed: moment().toString()
+            last_executed: moment().format()
           }
         )
           .then(() => {
-            console.log(`Successfully set cooldown for ${user_id} for the ${command_name}`)
+            console.log(`Successfully set cooldown for ${user_id} for the command ${command_name}`)
           })
           .catch(reason => {
             console.log(`Could not set cooldown for ${user_id} for the ${command_name} because: ${reason}`)
@@ -32,7 +32,7 @@ export default function (command_name: string, user_id: string) {
           last_executed: moment().toString()
         })
           .then(() => {
-            console.log(`Successfully set cooldown for ${user_id} for the ${command_name}`)
+            console.log(`Successfully created document and set cooldown for ${user_id} for the command ${command_name}`)
           })
           .catch(reason => {
               console.log(`Could not set cooldown for ${user_id} for the ${command_name} because: ${reason}`)

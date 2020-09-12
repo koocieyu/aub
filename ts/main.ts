@@ -8,7 +8,8 @@ const MDBURI = `mongodb+srv://${process.env.mongouser}:${process.env.mongopass}@
 
 mongoose.connect(MDBURI, {
     useNewUrlParser: true,
-    useUnifiedTopology: true
+    useUnifiedTopology: true,
+    useFindAndModify: false
 });
 
 export let MDB = mongoose.connection;
@@ -36,7 +37,7 @@ filesystem.readdir("./js/events/", (error, event_files) => {
       
     const event = require(`./events/${event_file}`);
 
-    Bot.on(event_name, (...args) => event.run_event(Client, ...args));
+    Bot.on(event_name, (...args) => event.run_event(Bot, ...args));
   });
 });
 
@@ -55,7 +56,7 @@ filesystem.readdir("./js/commands/", (error, command_files) => {
       if (command_file_parts.length < 2 || command_file_parts[1] != "js")
         throw new Error("Unknown type of file in commands folder");
   
-      const command_props = require(`../commands/${command_file}`).properties;
+      const command_props = require(`./commands/${command_file}`).properties;
 
       commands.push(command_props);
     });

@@ -45,27 +45,64 @@ filesystem.readdir("./js/events/", (error, event_files) => {
 export let commands = []
 
 filesystem.readdir("./js/commands/", (error, command_files) => {
-    if (error) throw console.log(error);
-    if (command_files.length == 0)
-      throw new Error("There are no commands in the commands folder!");
+  if (error) throw console.log(error);
+  if (command_files.length == 0)
+    throw new Error("There are no commands in the commands folder!");
   
-    command_files.forEach(command_file => {
+  command_files.forEach(command_file => {
 
-      const command_file_parts = command_file.split(".");
+    const command_file_parts = command_file.split(".");
   
-      if (command_file_parts.length < 2 || command_file_parts[1] != "js")
-        throw new Error("Unknown type of file in commands folder");
+    if (command_file_parts.length < 2 || command_file_parts[1] != "js")
+      throw new Error("Unknown type of file in commands folder");
   
-      const command_props = require(`./commands/${command_file}`).properties;
+    const command_props = require(`./commands/${command_file}`).properties;
 
-      commands.push(command_props);
+    commands.push(command_props);
     });
-  });
+});
 
-  // Make collection of cooldowns in db
-  let cooldowns_schema = new mongoose.Schema({
-    user_id: String,
-    last_executed: String,
-    command_name: String
-  })
-  export let db_cooldowns = MDB.model("cooldown", cooldowns_schema)
+// Make collection of cooldowns in db
+let cooldowns_schema = new mongoose.Schema({
+  user_id: String,
+  last_executed: String,
+  command_name: String
+})
+export let db_cooldowns = MDB.model("cooldown", cooldowns_schema)
+
+let games_schema = new mongoose.Schema({
+  category_id: String,
+  text_id: String,
+  voice_id: String,
+  role_id: String,
+  status: {
+    type: String,
+    default: "public"
+  },
+  full: {
+    type: Boolean,
+    default: false
+  },
+  max_players: {
+    type: Number,
+    default: 10
+  },
+  players_in: {
+    type: Number,
+    default: 1
+  },
+  impostors: {
+    type: Number,
+    default: 1
+  },
+  map: {
+    type: String,
+    default: "skeld"
+  },
+  code: String,
+  room_password: {
+    type: String,
+    default: ""
+  }
+})
+export let db_games = MDB.model("game", games_schema)

@@ -18,7 +18,6 @@ export function run_event(Bot: Client, message: Message) {
   commands.forEach((command: ICommandProperties) => {
     if (command_name === command.name) {
       function continueCheck() {
-        console.log("herecontinue")
         if (command.owner_only && (message.author.id !== process.env.ownerid)) {
           message.channel.send({
             embed: new MessageEmbed()

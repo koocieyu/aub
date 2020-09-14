@@ -99,7 +99,10 @@ let games_schema = new mongoose.Schema({
     type: String,
     default: "skeld"
   },
-  code: String,
+  code: {
+    type: String,
+    default: ""
+  },
   room_password: {
     type: String,
     default: ""

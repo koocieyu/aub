@@ -1,6 +1,7 @@
 import { Client, Message, MessageEmbed } from "discord.js";
 import set_cooldown from "../misc_functions/set_cooldown"
 import { db_games } from "../main"
+import crs from "crypto-random-string"
 
 export let properties = {
   file_name: "queue.js",
@@ -124,24 +125,79 @@ export function run(Bot: Client, command_arguments: string[], message: Message) 
           if (exists) {
               db_games.findOne(options_to_search, (error_findOne, lobby) => {
                 if (error_findOne) return console.log(`Error while searching for lobby: ${error_findOne}`)
-                message.member.roles.add(lobby.get("role_id")).then(() => {
-                  message.member.voice.setChannel(lobby.get("voice_id")).then(() => {
-                    const lobby_players_in = lobby.get("players_in")
-                    const lobby_max_players = lobby.get("max_players")
-                    let update_in = { players_in: lobby_players_in + 1 }
+                message.member.roles.add(lobby.get("role_id"))
+                  .then(() => {
+                    message.member.voice.setChannel(lobby.get("voice_id"))
+                      .then(() => {
+                        const lobby_players_in = lobby.get("players_in")
+                        const lobby_max_players = lobby.get("max_players")
+                        let update_in = { players_in: lobby_players_in + 1 }
                     
-                    if(lobby_players_in + 1 === lobby_max_players) update_in["full"] = true
+                        if(lobby_players_in + 1 === lobby_max_players) update_in["full"] = true
                     
-                    db_games.findOneAndUpdate({ _id: lobby.get("_id") }, update_in, (error_findAndUpdate, _doc) => {
-                      if (error_findAndUpdate) return console.log(`An error occured while updating info of user who joined a lobby: ${error_findAndUpdate}`)
-                      console.log("Successfully updated values when joining lobby in db.")
-                    })
+                        db_games.findOneAndUpdate({ _id: lobby.get("_id") }, update_in, (error_findAndUpdate, _doc) => {
+                          if (error_findAndUpdate) return console.log(`An error occured while updating info of user who joined a lobby: ${error_findAndUpdate}`)
+                          console.log("Successfully updated values when joining lobby in db.")
+                        })
+                      })
                   })
-                })
               })
           }
           else {
-            
+            // create role => create category => create vc => create channel => move to vc => table submit => welcome
+            message.guild.roles.create({
+              data: {
+                name: "aub-lobby-role-" + crs({length: 10, type: 'numeric'}),
+                mentionable: false,
+              }
+            })
+              .then(role => {
+                message.member.roles.add(role.id)
+                  .then(new_member => {
+                    message.guild.channels.create("Game Lobby", {
+                      type: "category",
+                      permissionOverwrites: [
+                        {
+                          id: role.id,
+                          allow: ["VIEW_CHANNEL", "SPEAK", "SEND_MESSAGES", "READ_MESSAGE_HISTORY"]
+                        }
+                      ]
+                    })
+                      .then(category => {
+                        category.guild.channels.create("chat", {
+                          type: "text",
+                          parent: category.id,
+                          rateLimitPerUser: 2
+                        })
+                          .then(chat => {
+                            category.guild.channels.create("speak", {
+                              type: "voice",
+                              parent: category.id,
+                              userLimit: 10
+                            })
+                              .then(voice => {
+                                new_member.voice.setChannel(voice.id)
+                                  .then(() => {
+                                    db_games.create({
+                                      ...options_to_search,
+                                      category_id: category.id,
+                                      role_id: role.id,
+                                      voice_id: voice.id,
+                                      text_id: chat.id
+                                    })
+                                      .then(() => {
+                                        console.log("Successfully created new lobby!")
+                                        chat.send({
+                                          embed: new MessageEmbed()
+                                            .setDescription("hello! this is a lobby!")
+                                        })
+                                      })
+                                  })
+                              })
+                          })
+                      })
+                  })
+              })
           }
         })
         .catch(error => {

@@ -202,50 +202,50 @@ export function run(Bot: Client, command_arguments: string[], message: Message) 
               .then(async role => {
                 await sleep(500)
 
-                // Assign the lobby role to the user
-                message.member.roles.add(role.id)
-                  .then(async new_member => {
+                // Make game category
+                message.guild.channels.create("Game Lobby", {
+                  type: "category",
+                  permissionOverwrites: [
+                    {
+                      id: role.id,
+                      allow: ["VIEW_CHANNEL", "SPEAK", "SEND_MESSAGES", "READ_MESSAGE_HISTORY"]
+                    },
+                    {
+                      id: process.env.everyoneroleid,
+                      deny: ["VIEW_CHANNEL"]
+                    },
+                    {
+                      id: Bot.user.id,
+                      allow: ["VIEW_CHANNEL"]
+                    }
+                  ]
+                })
+                  .then(async category => {
                     await sleep(500)
 
-                    // Make the category for the lobby which holds the vc + text chat
-                    message.guild.channels.create("Game Lobby", {
-                      type: "category",
-                      permissionOverwrites: [
-                        {
-                          id: role.id,
-                          allow: ["VIEW_CHANNEL", "SPEAK", "SEND_MESSAGES", "READ_MESSAGE_HISTORY"]
-                        },
-                        {
-                          id: process.env.everyoneroleid,
-                          deny: ["VIEW_CHANNEL"]
-                        },
-                        {
-                          id: Bot.user.id,
-                          allow: ["VIEW_CHANNEL"]
-                        }
-                      ]
+                    // Make the lobby text channel
+                    category.guild.channels.create("chat", {
+                      type: "text",
+                      parent: category.id,
+                      rateLimitPerUser: 2
                     })
-                      .then(async category => {
+                      .then(async chat => {
                         await sleep(500)
 
-                        // Make the lobby text channel
-                        category.guild.channels.create("chat", {
-                          type: "text",
+                        // Make the lobby vc
+                        category.guild.channels.create("speak", {
+                          type: "voice",
                           parent: category.id,
-                          rateLimitPerUser: 2
+                          userLimit: 10
                         })
-                          .then(async chat => {
+                          .then(async voice => {
                             await sleep(500)
 
-                            // Make the lobby vc
-                            category.guild.channels.create("speak", {
-                              type: "voice",
-                              parent: category.id,
-                              userLimit: 10
-                            })
-                              .then(async voice => {
+                                            // Assign the lobby role to the user
+                            message.member.roles.add(role.id)
+                              .then(async new_member => {
                                 await sleep(500)
-
+                                
                                 // Move the member in the lobby vc
                                 new_member.voice.setChannel(voice.id)
                                   .then(() => {
@@ -259,7 +259,7 @@ export function run(Bot: Client, command_arguments: string[], message: Message) 
                                       .then(async () => {
                                         console.log("Successfully created new lobby!")
                                         await sleep(500)
-
+                                      
                                         // Send the member (host) an interesting message
                                         chat.send({
                                           embed: new MessageEmbed()
@@ -267,13 +267,15 @@ export function run(Bot: Client, command_arguments: string[], message: Message) 
                                         })
                                           .then(async () => {
                                             await sleep(500)
-
+                                          
                                             // Add the room host role to the user
                                             new_member.roles.add(process.env.hostmemberrole)
                                           })
                                       })
                                   })
+                            
                               })
+
                           })
                       })
                   })

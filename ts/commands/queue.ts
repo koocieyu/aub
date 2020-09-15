@@ -173,6 +173,7 @@ export function run(Bot: Client, command_arguments: string[], message: Message) 
                             embed: new MessageEmbed()
                               .setDescription(`it seems like ${message.member} has joined the lobby.`)
                           })
+                        set_cooldown("queue", message.author.id)
                         const lobby_players_in = lobby.get("players_in")
                         const lobby_max_players = lobby.get("max_players")
                         let update_in = { players_in: lobby_players_in + 1 }
@@ -270,6 +271,7 @@ export function run(Bot: Client, command_arguments: string[], message: Message) 
                                           
                                             // Add the room host role to the user
                                             new_member.roles.add(process.env.hostmemberrole)
+                                            set_cooldown("queue", message.author.id)
                                           })
                                       })
                                   })

@@ -29,7 +29,7 @@ export default function (command_name: string, user_id: string) {
         db_cooldowns.create({
           user_id: user_id,
           command_name: command_name,
-          last_executed: moment().toString()
+          last_executed: moment().format()
         })
           .then(() => {
             console.log(`Successfully created document and set cooldown for ${user_id} for the command ${command_name}`)
